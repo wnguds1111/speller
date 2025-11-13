@@ -1,101 +1,186 @@
-// DOM(문서)이 모두 로드되었을 때 스크립트를 실행합니다.
 document.addEventListener('DOMContentLoaded', () => {
-
-    // 1. HTML에서 필요한 요소들을 가져옵니다.
     const textInput = document.getElementById('textInput');
+    const resetButton = document.getElementById('resetButton');
+    const copyButton = document.getElementById('copyButton');
     const checkButton = document.getElementById('checkButton');
-    const resultArea = document.getElementById('resultArea');
+    const resultCard = document.getElementById('resultCard');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const resultContent = document.getElementById('resultContent');
 
-    // 2. '검사하기' 버튼에 클릭 이벤트 리스너를 추가합니다.
-    checkButton.addEventListener('click', () => {
-        const text = textInput.value;
+    // 초기화 버튼 기능
+    resetButton.addEventListener('click', () => {
+        textInput.value = '';
+        resultContent.innerHTML = '';
+        resultContent.style.display = 'none';
+        // resultCard의 높이를 재설정 (결과가 없을 때 원래 크기로)
+        resultCard.style.minHeight = '150px'; 
+    });
 
-        // 텍스트가 비어있으면 검사하지 않습니다.
-        if (text.trim() === '') {
-            resultArea.innerHTML = '<p>검사할 텍스트를 입력해주세요.</p>';
+    // 복사 버튼 기능
+    copyButton.addEventListener('click', () => {
+        textInput.select(); // 텍스트 영역 선택
+        document.execCommand('copy'); // 복사 명령 실행
+        alert('텍스트가 클립보드에 복사되었습니다!');
+    });
+
+    // 맞춤법 검사 버튼 기능
+    checkButton.addEventListener('click', async () => {
+        const text = textInput.value.trim();
+
+        if (text === '') {
+            displayResult('no_input');
             return;
         }
 
-        // 3. 로딩 상태를 표시합니다.
-        resultArea.innerHTML = '<p>검사 중입니다...</p>';
-        checkButton.disabled = true; // 버튼 비활성화
+        // 로딩 인디케이터 표시
+        loadingIndicator.style.display = 'block';
+        resultContent.style.display = 'none';
+        checkButton.disabled = true;
+        resetButton.disabled = true;
+        copyButton.disabled = true;
 
-        // 4. [가상] 맞춤법 검사 API 호출 시뮬레이션
-        // 실제로는 이 부분에서 fetch()를 사용해 외부 API로 text를 보냅니다.
-        fakeSpellCheckAPI(text)
-            .then(correctedHtml => {
-                // 5. 성공 시 결과 표시
-                resultArea.innerHTML = correctedHtml;
-                checkButton.disabled = false; // 버튼 활성화
-            })
-            .catch(error => {
-                // 6. 실패 시 에러 표시
-                console.error('API 호출 오류:', error);
-                resultArea.innerHTML = '<p>오류가 발생했습니다. 다시 시도해주세요.</p>';
-                checkButton.disabled = false; // 버튼 활성화
-            });
+        try {
+            // 네이버 맞춤법 검사기 프록시 호출
+            const correctedData = await checkSpellingWithNaver(text);
+            
+            if (correctedData && correctedData.length > 0) {
+                // 오류가 발견된 경우
+                displayResult('error_found', correctedData);
+            } else {
+                // 오류가 없는 경우
+                displayResult('no_error');
+            }
+
+        } catch (error) {
+            console.error('맞춤법 검사 중 오류 발생:', error);
+            displayResult('api_error');
+        } finally {
+            loadingIndicator.style.display = 'none';
+            checkButton.disabled = false;
+            resetButton.disabled = false;
+            copyButton.disabled = false;
+        }
     });
 
-    /**
-     * [시뮬레이션 함수]
-     * 실제 API를 호출하는 대신, 1초 후에 미리 준비된 결과를 반환합니다.
-     * * @param {string} text - 사용자가 입력한 원본 텍스트
-     * @returns {Promise<string>} - 수정된 내용이 포함된 HTML 문자열을 반환
-     */
-    function fakeSpellCheckAPI(text) {
-        console.log("가상 API로 전송된 텍스트:", text);
 
-        return new Promise((resolve) => {
-            // 네트워크 지연 시뮬레이션 (1초)
-            setTimeout(() => {
-                // 원본 텍스트를 기반으로 가상 결과 생성
-                // 예시: '잘못된'이라는 단어를 찾아서 CSS 클래스를 적용
-                let processedHtml = text.replace(
-                    /잘못된/g, 
-                    '<span class="error-highlight" title="[수정 제안] 잘못된 → 틀린">잘못된</span>'
-                );
+    // --- 결과 표시 함수 ---
+    function displayResult(type, data = null) {
+        resultContent.style.display = 'block';
+        resultContent.innerHTML = ''; // 기존 내용 지우기
 
-                // 예시: '오탈자'라는 단어를 찾아서 CSS 클래스 적용
-                processedHtml = processedHtml.replace(
-                    /오탈자/g, 
-                    '<span class="error-highlight" title="[수정 제안] 오탈자 → 오탈자(誤脫字)">오탈자</span>'
-                );
-                
-                // 줄바꿈(newline)을 <br> 태그로 변환하여 HTML에 표시
-                processedHtml = processedHtml.replace(/\n/g, '<br>');
+        let headerHtml = '';
+        let bodyHtml = '';
 
-                // '검사 완료:' 메시지와 함께 결과 반환
-                const finalHtml = `<p><strong>검사 완료:</strong></p>${processedHtml}`;
-                resolve(finalHtml);
+        if (type === 'no_input') {
+            headerHtml = `
+                <div class="result-header error-header">
+                    <h3><i class="fas fa-exclamation-triangle"></i> 입력이 필요합니다</h3>
+                </div>`;
+            bodyHtml = `
+                <div class="result-body error-body">
+                    <p>검사할 텍스트를 입력해주세요.</p>
+                </div>`;
+        } else if (type === 'no_error') {
+            headerHtml = `
+                <div class="result-header success-header">
+                    <h3><i class="fas fa-check-circle"></i> 완벽합니다!</h3>
+                </div>`;
+            bodyHtml = `
+                <div class="result-body success-body">
+                    <i class="fas fa-check-circle success-icon"></i>
+                    <p>맞춤법 오류가 없습니다</p>
+                </div>`;
+        } else if (type === 'error_found' && data) {
+            headerHtml = `
+                <div class="result-header error-header">
+                    <h3><i class="fas fa-exclamation-triangle"></i> 오류가 발견되었습니다!</h3>
+                </div>`;
+            
+            let correctedTextOutput = '';
+            data.forEach(item => {
+                // 네이버 API 파싱 결과에 따라 적절히 처리 (예: 원본 텍스트에 하이라이트)
+                // 현재는 단어 단위로 하이라이트한다고 가정
+                if (item.correct !== item.original) { // 원본과 수정본이 다르면 오류로 간주
+                    correctedTextOutput += `<span class="error-text" data-suggestion="${item.original} → ${item.correct}">${item.original}</span> `;
+                } else {
+                    correctedTextOutput += `${item.original} `;
+                }
+            });
 
-            }, 1000); // 1초 지연
-        });
-    }
+            bodyHtml = `
+                <div class="result-body error-body">
+                    <p>다음과 같은 오류가 발견되었습니다:</p>
+                    <div class="corrected-text-output">${correctedTextOutput}</div>
+                </div>`;
 
-    // [참고] 만약 실제 API를 사용한다면 이 함수는 이런 모습이 됩니다.
-    /*
-    async function realSpellCheckAPI(text) {
-        const apiKey = "YOUR_API_KEY"; // 실제 API 키
-        const apiUrl = "https://api.example.com/spellcheck"; // 실제 API 주소
-
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({ query: text })
-        });
-
-        if (!response.ok) {
-            throw new Error('네트워크 응답이 올바르지 않습니다.');
+        } else if (type === 'api_error') {
+             headerHtml = `
+                <div class="result-header error-header">
+                    <h3><i class="fas fa-times-circle"></i> 오류 발생</h3>
+                </div>`;
+            bodyHtml = `
+                <div class="result-body error-body">
+                    <p>맞춤법 검사 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.</p>
+                    <p><i>(참고: 네이버 검사기는 비공식 연동이므로 작동이 불안정할 수 있습니다.)</i></p>
+                </div>`;
         }
 
-        const data = await response.json(); // API 응답 (JSON 형태)
-        
-        // 이 데이터를 가공해서 HTML로 만드는 로직이 필요합니다.
-        const processedHtml = processApiData(data); 
-        return processedHtml;
+        resultContent.innerHTML = headerHtml + bodyHtml;
     }
-    */
+
+
+    // --- 네이버 맞춤법 검사기 비공식 연동 함수 ---
+    async function checkSpellingWithNaver(text) {
+        // CORS 문제 해결을 위해 프록시 서버를 경유해야 합니다.
+        // 이 예시에서는 임시로 'https://cors-anywhere.herokuapp.com/'를 사용하지만, 
+        // 실제 서비스에서는 직접 만든 서버리스 함수(AWS Lambda 등)나 Node.js 서버를 사용하는 것이 안전합니다.
+        const proxyUrl = 'https://cors-anywhere.herokuapp.com/'; 
+        const naverSpellCheckUrl = 'https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=';
+        
+        // 텍스트를 URL 인코딩하여 네이버 쿼리 생성
+        const encodedText = encodeURIComponent(text);
+        const fullUrl = `${proxyUrl}${naverSpellCheckUrl}${encodedText}+맞춤법`;
+
+        try {
+            const response = await fetch(fullUrl);
+            const htmlText = await response.text();
+
+            // HTML 파싱하여 결과 추출 (매우 취약한 부분)
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlText, 'text/html');
+
+            const resultContainer = doc.querySelector('.spelling_chk_area._result_box');
+            
+            // 결과 컨테이너가 없으면 오류 없음으로 간주하거나 오류 처리
+            if (!resultContainer) {
+                return []; // 오류 없음
+            }
+
+            const errorItems = resultContainer.querySelectorAll('.option'); // 오류 항목들
+            const corrections = [];
+
+            errorItems.forEach(item => {
+                const originalText = item.querySelector('.text_highlight').textContent.trim();
+                const correctedText = item.querySelector('.word_fix').textContent.trim();
+                const description = item.querySelector('.explain').textContent.trim();
+                
+                // 단어만 추출하기 위해 불필요한 부분 제거
+                const cleanOriginal = originalText.replace(/「|」/g, '').trim();
+                const cleanCorrected = correctedText.replace(/「|」/g, '').trim();
+
+                corrections.push({
+                    original: cleanOriginal,
+                    correct: cleanCorrected,
+                    description: description
+                });
+            });
+            
+            console.log("네이버 파싱 결과:", corrections);
+            return corrections;
+
+        } catch (error) {
+            console.error('네이버 맞춤법 검사기 파싱 오류:', error);
+            throw new Error('네이버 맞춤법 검사기 연결에 실패했습니다.');
+        }
+    }
 });

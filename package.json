@@ -1,8 +1,5 @@
 {
-  "name": "my-spell-checker",
+  "name": "spell-checker-project",
   "version": "1.0.0",
-  "dependencies": {
-    "some-package": "1.2.3"
-  },
   "type": "module"
 }

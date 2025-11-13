@@ -1,109 +1,297 @@
-/* --- C안 (따뜻한 뉴트럴) 팔레트 ---
-    페이지 배경: #F4F1ED
-    텍스트/카드 배경: #FFFFFF
-    기본 텍스트: #5A504B
-    메인 버튼: #BFA89E
-    오류 표시: #E08A83
-    수정 제안: #6D5D54
+/* --- 이미지 기반 디자인 팔레트 ---
+    메인 블루 그라데이션: linear-gradient(90deg, #5D80EC, #7C5DEC)
+    주요 블루: #5D80EC
+    성공 그린: #32CD32
+    경고 오렌지: #FFA500
+    텍스트: #333333
+    카드 배경: #FFFFFF
+    페이지 배경: #F4F7FC (아주 연한 푸른색)
 ----------------------------------- */
 
+:root {
+    --main-blue: #5D80EC;
+    --secondary-blue: #7C5DEC;
+    --success-green: #32CD32;
+    --warning-orange: #FFA500;
+    --text-dark: #333333;
+    --text-light: #666666;
+    --card-bg: #FFFFFF;
+    --page-bg: #F4F7FC;
+    --border-light: #E0E0E0;
+    --button-hover-darken: brightness(0.9);
+}
+
 body {
-    background-color: #F4F1ED; /* 페이지 배경 */
-    color: #5A504B; /* 기본 텍스트 */
-    font-family: 'Noto Sans KR', sans-serif;
+    background-color: var(--page-bg);
+    font-family: 'Noto Sans KR', 'Roboto', sans-serif;
+    color: var(--text-dark);
     margin: 0;
     padding: 20px;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start; /* 상단 정렬 */
     min-height: 100vh;
     box-sizing: border-box;
 }
 
 .container {
     width: 100%;
-    max-width: 700px; /* 데스크탑에서 너무 넓어지지 않게 */
+    max-width: 800px; /* 좀 더 넓게 */
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* 카드 간 간격 */
 }
 
-header {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-header h1 {
-    font-weight: 500;
-    color: #5A504B;
-}
-
-.editor-card {
-    background-color: #FFFFFF; /* 콘텐츠 배경 */
+.card {
+    background-color: var(--card-bg);
     border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden; /* 헤더 그라데이션이 넘치지 않도록 */
+}
+
+/* --- 카드 헤더 스타일 --- */
+.card-header {
+    position: relative;
+    padding-bottom: 20px; /* content 영역을 위해 */
+}
+
+.header-gradient {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--main-blue), var(--secondary-blue));
+    z-index: 1; /* 콘텐츠 뒤로 */
+}
+
+.header-content {
+    position: relative;
+    z-index: 2; /* 그라데이션 위로 */
+    padding: 25px 30px 20px;
+    color: white;
+}
+
+.header-content h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.header-content p {
+    margin: 5px 0 0;
+    font-size: 15px;
+    font-weight: 400;
+    opacity: 0.9;
+}
+
+.card-body {
     padding: 30px;
-    box-shadow: 0 4px 12px rgba(90, 80, 75, 0.08); /* 부드러운 그림자 */
 }
 
 textarea {
     width: 100%;
     height: 250px;
-    border: 1px solid #D4C4B7; /* 샌드 컬러 계열의 연한 테두리 */
+    border: 1px solid var(--border-light);
     border-radius: 8px;
     padding: 15px;
     font-size: 16px;
-    color: #5A504B;
-    background-color: #FDFDFD; /* 흰색보다 아주 살짝 어둡게 */
-    box-sizing: border-box; /* 패딩이 너비를 넘어가지 않도록 */
-    resize: vertical; /* 세로로만 크기 조절 */
-    font-family: 'Noto Sans KR', sans-serif;
+    color: var(--text-dark);
+    background-color: #F8F8F8; /* 살짝 그레이 톤 */
+    box-sizing: border-box;
+    resize: vertical;
+    font-family: 'Noto Sans KR', 'Roboto', sans-serif;
+    line-height: 1.6;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 textarea:focus {
     outline: none;
-    border-color: #BFA89E; /* 포커스 시 메인 컬러 */
-    box-shadow: 0 0 0 2px rgba(191, 168, 158, 0.3);
+    border-color: var(--main-blue);
+    box-shadow: 0 0 0 3px rgba(93, 128, 236, 0.2);
 }
 
-button {
-    width: 100%;
-    padding: 15px;
-    margin-top: 15px;
-    background-color: #BFA89E; /* 메인 버튼 */
-    color: #FFFFFF; /* 버튼 텍스트 */
+.button-group {
+    display: flex;
+    justify-content: flex-end; /* 오른쪽 정렬 */
+    gap: 10px; /* 버튼 간 간격 */
+    margin-top: 20px;
+}
+
+.icon-button, .primary-button {
+    padding: 12px 20px;
     border: none;
     border-radius: 8px;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, filter 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-button:hover {
-    background-color: #a79086; /* 호버 시 조금 더 어둡게 */
+.icon-button {
+    background-color: #E0E0E0; /* 연한 회색 */
+    color: var(--text-dark);
 }
 
-#resultArea {
-    margin-top: 20px;
-    padding: 15px;
-    border-top: 1px solid #F4F1ED; /* 구분선 */
+.icon-button:hover {
+    background-color: #D5D5D5;
+}
+
+.primary-button {
+    background: var(--main-blue); /* 그라데이션 없이 단색으로 */
+    color: white;
+}
+
+.primary-button:hover {
+    filter: var(--button-hover-darken);
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* --- 결과 섹션 스타일 --- */
+.result-section {
+    min-height: 150px; /* 최소 높이 설정 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.result-header {
+    padding: 15px 30px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.result-header h3 {
+    margin: 0;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.success-header {
+    background-color: #E6F7ED; /* 연한 그린 배경 */
+    color: var(--success-green);
+}
+.success-header i { color: var(--success-green); }
+
+.error-header {
+    background-color: #FFF3E6; /* 연한 오렌지 배경 */
+    color: var(--warning-orange);
+}
+.error-header i { color: var(--warning-orange); }
+
+
+.result-body {
+    padding: 30px;
     line-height: 1.7;
-    font-size: 15px;
-    color: #6D5D54;
+    font-size: 16px;
+    color: var(--text-light);
 }
 
-/* [JavaScript로 추가할 스타일]
-  API가 오류를 반환했을 때, JavaScript가 
-  해당 단어를 <span>으로 감싸고 이 클래스를 추가해야 합니다.
-*/
-.error-highlight {
-    /* 물결무늬 밑줄 (가장 직관적)
-      text-decoration-color: #E08A83;
-      text-decoration-line: underline;
-      text-decoration-style: wavy;
-    */
-    
-    /* 또는 배경색 하이라이트 (더 부드러운 느낌) */
-    background-color: #F9EBEA; /* #E08A83의 아주 연한 버전 */
-    border-bottom: 2px solid #E08A83; /* 오류 표시 */
+.success-body .success-icon {
+    font-size: 60px;
+    color: var(--success-green);
+    margin-bottom: 15px;
+    display: block;
+}
+
+.error-body {
+    text-align: left; /* 오류 내용은 좌측 정렬 */
+}
+
+/* --- 맞춤법 오류 하이라이트 및 제안 --- */
+.error-text {
+    background-color: #FFEBEE; /* 연한 빨간색 배경 */
+    border-bottom: 2px solid #E57373; /* 오류 표시 */
+    cursor: help; /* 툴팁이 있음을 나타냄 */
     padding: 0 2px;
     border-radius: 3px;
-    cursor: pointer; /* 클릭해서 수정 제안을 볼 수 있게 */
+    position: relative; /* 툴팁 위치 지정을 위해 */
+}
+
+/* 툴팁 스타일 */
+.error-text::after {
+    content: attr(data-suggestion); /* data-suggestion 속성에서 툴팁 내용 가져오기 */
+    position: absolute;
+    bottom: 100%; /* 단어 위에 위치 */
+    left: 50%;
+    transform: translateX(-50%) translateY(-5px); /* 중앙 정렬 및 간격 */
+    background-color: var(--text-dark);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    white-space: nowrap; /* 줄바꿈 방지 */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none; /* 툴팁이 마우스 이벤트를 방해하지 않도록 */
+    z-index: 10;
+}
+
+.error-text:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-10px); /* 호버 시 살짝 위로 이동 */
+}
+
+/* 로딩 스피너 */
+.loading-spinner {
+    text-align: center;
+    color: var(--text-light);
+    font-size: 16px;
+}
+
+.spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-top: 4px solid var(--main-blue);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 모바일 반응형 */
+@media (max-width: 768px) {
+    body {
+        padding: 15px;
+    }
+    .card-body {
+        padding: 20px;
+    }
+    .card-header .header-content {
+        padding: 20px 25px 15px;
+    }
+    .header-content h2 {
+        font-size: 20px;
+    }
+    .header-content p {
+        font-size: 14px;
+    }
+    .button-group {
+        flex-direction: column;
+        gap: 8px;
+    }
+    .icon-button, .primary-button {
+        width: 100%;
+        justify-content: center;
+    }
+    .result-body {
+        padding: 20px;
+        font-size: 15px;
+    }
 }

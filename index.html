@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>맞춤법 검사기</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>맞춤법 & 오탈자 검사기</h1>
+        </header>
+        
+        <main class="editor-card">
+            <textarea id="textInput" placeholder="여기에 텍스트를 입력하세요..."></textarea>
+            <button id="checkButton">검사하기</button>
+            
+            <div id="resultArea">
+                <p>검사 결과가 여기에 표시됩니다. 예를 들어, <span class="error-highlight">잘못된</span> 단어는 이렇게 표시될 수 있습니다.</p>
+            </div>
+        </main>
+    </div>
+
+    </body>
+</html>

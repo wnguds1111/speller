@@ -294,4 +294,33 @@ button:disabled {
         padding: 20px;
         font-size: 15px;
     }
+    /* --- [추가] 네이버 맞춤법 검사기 스타일 --- */
+/* .corrected-text-output 안에 있는 네이버 클래스에 스타일 적용 */
+
+.corrected-text-output {
+    line-height: 1.8;
+    font-size: 16px;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: #fafafa;
+}
+
+/* 빨간색 오류 (틀린 단어) */
+.corrected-text-output .gL {
+    color: #E53935; /* 진한 빨강 텍스트 */
+    font-weight: 500;
+}
+
+/* 녹색 오류 (띄어쓰기 제안) */
+.corrected-text-output .gR {
+    color: #43A047; /* 진한 녹색 텍스트 */
+    font-weight: 500;
+}
+
+/* 보라색 오류 (표준어 제안) */
+.corrected-text-output .gB {
+    color: #5E35B1; /* 진한 보라 텍스트 */
+    font-weight: 500;
+}
+    
 }

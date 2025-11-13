@@ -1,51 +1,60 @@
 // /api/check.js
-// [최종] Daum API 주소를 alldic으로 수정한 버전
+// [최종] Bareun API (bareun.ai)를 호출하는 버전
 
 export default async function handler(request, response) {
-    // 1. POST 요청이 아니면 거부
     if (request.method !== 'POST') {
         return response.status(405).json({ error: 'Method Not Allowed' });
     }
     
+    // 1. Vercel 환경 변수에서 API 키 가져오기
+    const apiKey = process.env.BAREUN_API_KEY;
+    if (!apiKey) {
+        console.error('API Key is missing');
+        return response.status(500).json({ error: 'Server configuration error' });
+    }
+
     // 2. 프론트엔드에서 보낸 텍스트 받기
     const { text } = request.body;
     if (!text || text.trim() === "") {
-        // 텍스트가 비어있으면 오류 없음(빈 배열)을 반환
-        return response.status(200).json([]); 
+        // 텍스트가 없으면 빈 JSON 객체 반환
+        return response.status(200).json({}); 
     }
 
-    // 3. '다음' API의 새 주소 (alldic)
-    const apiUrl = `https://alldic.daum.net/grammar_checker.daum?q=${encodeURIComponent(text)}`;
+    // 3. '바른 API' 공식 엔드포인트 및 요청 데이터
+    const apiUrl = 'https://api.bareun.ai/bareun/api/v1/correct-error';
+    
+    // '바른 API'는 이 JSON 형식으로 요청해야 합니다.
+    const apiRequestBody = {
+        document: {
+            content: text,
+            language: "ko-KR"
+        }
+    };
 
     try {
-        // 4. '다음' API에 검사 요청
+        // 4. '바른 API'에 검사 요청 (POST)
         const apiResponse = await fetch(apiUrl, {
-            method: 'GET',
+            method: 'POST',
             headers: {
-                // 'alldic'을 사용하는 Referer로 변경
-                'Referer': 'https://alldic.daum.net/',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-            }
+                'Content-Type': 'application/json',
+                'api-key': apiKey // 헤더에 API 키 포함
+            },
+            body: JSON.stringify(apiRequestBody)
         });
 
-        // 5. '다음'이 404 등 에러를 반환했는지 확인
         if (!apiResponse.ok) {
-            // Vercel 로그에 "Daum API responded with 404"가 찍힘
-            throw new Error(`Daum API responded with ${apiResponse.status}`);
+            // 401 (키 틀림), 403 (권한 없음), 500 (바른 API 서버 에러)
+            const errorText = await apiResponse.text();
+            console.error(`Bareun API error: ${apiResponse.status}`, errorText);
+            throw new Error(`Bareun API responded with ${apiResponse.status}`);
         }
 
-        // 6. 정상 응답이면 JSON 데이터 추출
+        // 5. 성공 시, JSON 응답을 그대로 프론트엔드로 전달
         const data = await apiResponse.json(); 
-        
-        // 7. JSON 데이터를 프론트엔드로 그대로 전달
         response.status(200).json(data);
 
     } catch (error) {
-        // 5번(fetch 실패) 또는 6번(json 파싱 실패)에서 에러 발생 시
-        console.error('Daum API fetch error:', error.message);
-        
-        // 프론트엔드가 500 에러를 받지 않도록,
-        // "오류 없음(빈 배열)"으로 정상 응답(200)을 보냄
-        response.status(200).json([]);
+        console.error('Bareun API fetch error:', error.message);
+        response.status(500).json({ error: error.message });
     }
 }

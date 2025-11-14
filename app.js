@@ -76,7 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 6. 결과 표시 함수 (*** 최종 버전 ***)
+// app.js
+
+// ... (다른 코드는 모두 동일) ...
+
+    // 6. 결과 표시 함수 (*** 최종 수정 ***)
     function displayResult(type, data = null) {
         resultContent.style.display = 'block';
         resultContent.innerHTML = ''; 
@@ -93,43 +97,37 @@ document.addEventListener('DOMContentLoaded', () => {
             bodyHtml = `<div class="result-body success-body"><i class="fas fa-check-circle success-icon"></i><p>맞춤법 오류가 없습니다</p></div>`;
 
         } else if (type === 'error_found' && data) {
-            // *** 여기가 핵심 ***
-            // '바른 API'의 JSON으로 하이라이트 UI 생성
             headerHtml = `<div class="result-header error-header"><h3><i class="fas fa-exclamation-triangle"></i> 오류가 발견되었습니다!</h3></div>`;
             
-            let correctedHtml = data.origin; // 원본 텍스트로 시작
+            let correctedHtml = data.origin;
             
-            // 여러 오류가 있을 때 인덱스가 꼬이지 않도록, 배열을 뒤집어서(reverse) 뒤에서부터 수정
             data.revisedBlocks.slice().reverse().forEach(block => {
                 const originalWord = block.origin.content;
                 const start = block.origin.beginOffset;
                 const end = start + block.origin.length;
                 
-                // 제안 단어 (첫 번째 제안 사용)
                 const suggestion = block.revisions[0].revised;
-                
-                // 툴팁에 넣을 도움말 (helps 객체에서 찾기)
                 const helpId = block.revisions[0].helpId;
                 const helpComment = data.helps[helpId]?.comment || "수정 제안";
                 
-                // 툴팁 텍스트 생성 (줄바꿈 \n 추가)
+                // 툴팁 텍스트에 \n (줄바꿈)이 포함되어 있습니다.
                 const suggestionTooltip = `${originalWord} → ${suggestion}\n(${helpComment})`;
                 
-                // CSS에서 만든 .error-text 클래스와 data-suggestion 속성 사용
                 const errorSpan = `<span class="error-text" data-suggestion="${suggestionTooltip}">${originalWord}</span>`;
 
-                // 원본 텍스트의 해당 부분을 <span>으로 교체
                 correctedHtml = 
                     correctedHtml.substring(0, start) + 
                     errorSpan + 
                     correctedHtml.substring(end);
             });
             
+            // --- 여기가 수정되었습니다! (헷갈리는 span 제거) ---
             bodyHtml = `
                 <div class="result-body error-body">
-                    <p>아래 텍스트에서 <span class="error-text" data-suggestion="오류가 있는 단어 위에 마우스를 올려보세요">하이라이트</span>된 부분을 확인하세요.</p>
+                    <p>아래 텍스트에서 <strong>하이라이트</strong>된 부분을 확인하세요. (마우스를 올리면 수정 제안이 보입니다)</p>
                     <div class="corrected-text-output">${correctedHtml.replace(/\n/g, '<br>')}</div>
                 </div>`;
+            // ----------------------------------------------------
 
         } else if (type === 'api_error') {
              headerHtml = `<div class="result-header error-header"><h3><i class="fas fa-times-circle"></i> 오류 발생</h3></div>`;
@@ -138,4 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         resultContent.innerHTML = headerHtml + bodyHtml;
     }
+    
+// ... (나머지 코드는 모두 동일) ...
 });

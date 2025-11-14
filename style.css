@@ -208,46 +208,22 @@ button:disabled {
     text-align: left; /* 오류 내용은 좌측 정렬 */
 }
 
-/* --- 맞춤법 오류 하이라이트 및 제안 --- */
+/* --- [수정] 맞춤법 오류 하이라이트 --- */
 .error-text {
     background-color: #FFEBEE; /* 연한 빨간색 배경 */
-    border-bottom: 2px solid #E57373; /* 오류 표시 */
-    cursor: help; /* 툴팁이 있음을 나타냄 */
+    border-bottom: 2px solid #E57373;
     padding: 0 2px;
     border-radius: 3px;
-    position: relative; /* 툴팁 위치 지정을 위해 */
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.error-text.clickable {
+    cursor: pointer; /* 클릭 가능 커서 */
+}
+.error-text.clickable:hover {
+    background-color: #FFCDD2; /* 호버 시 조금 더 진하게 */
+    border-color: #EF5350;
 }
 
-/* 툴팁 스타일 */
-.error-text::after {
-    content: attr(data-suggestion);
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%) translateY(-5px);
-    background-color: var(--text-dark);
-    color: white;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    
-    /* --- 여기가 수정되었습니다 --- */
-    white-space: pre-wrap; /* 'nowrap' -> 'pre-wrap' (줄바꿈 \n 지원) */
-    text-align: left;    /* (추가) 툴팁 텍스트 왼쪽 정렬 */
-    min-width: 200px;    /* (추가) 툴팁 최소 너비 */
-    /* --------------------------- */
-
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s ease, transform 0.2s ease;
-    pointer-events: none;
-    z-index: 10;
-}
-.error-text:hover::after {
-    opacity: 1;
-    visibility: visible;
-    transform: translateX(-50%) translateY(-10px); /* 호버 시 살짝 위로 이동 */
-}
 
 /* 로딩 스피너 */
 .loading-spinner {
@@ -327,6 +303,54 @@ button:disabled {
 .corrected-text-output .gB {
     color: #5E35B1; /* 진한 보라 텍스트 */
     font-weight: 500;
+}
+/* --- [추가] 수정 완료 텍스트 스타일 --- */
+.corrected-text {
+    color: var(--success-green); /* 성공 녹색 */
+    font-weight: 500;
+    padding: 0 2px;
+    border-radius: 3px;
+    background-color: #E6F7ED; /* 연한 녹색 배경 */
+}
+
+/* --- [추가] 하단 제안 목록 스타일 --- */
+.suggestion-list {
+    list-style-type: none;
+    padding: 20px 0 0 0;
+    margin-top: 25px;
+    border-top: 1px solid var(--border-light);
+}
+
+.suggestion-list li {
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background-color: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.suggestion-list .suggestion-text {
+    flex-grow: 1;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.suggestion-list .suggestion-text strong {
+    color: var(--text-dark);
+}
+
+.suggestion-list .suggestion-text .suggestion-word {
+    color: var(--main-blue); /* 제안 단어는 파란색으로 */
+}
+
+.suggestion-list .suggestion-text p.suggestion-help {
+    font-size: 13px;
+    color: var(--text-light);
+    margin: 4px 0 0 0;
+    padding-left: 10px;
+    border-left: 3px solid var(--border-light);
 }
     
 }
